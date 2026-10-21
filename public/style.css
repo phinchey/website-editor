@@ -69,8 +69,10 @@ code { font-family: ui-monospace, Consolas, Menlo, monospace; font-size: 12px; b
 .toolbar select { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 2px 4px; }
 .toolbar .chk { display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; cursor: pointer; }
 #visual-body { flex: 1; display: flex; min-height: 0; }
-#frame-wrap { flex: 1; position: relative; min-width: 0; }
+#frame-wrap { flex: 1; position: relative; min-width: 0; overflow: hidden; background: #fff; }
 #frame { width: 100%; height: 100%; border: 0; background: #fff; display: block; }
+#frame-wrap.device { background: #3a3b45 repeating-linear-gradient(45deg, transparent 0 10px, rgba(255,255,255,.02) 10px 20px); }
+#frame-wrap.device #frame { position: absolute; top: 0; left: 50%; transform-origin: top left; box-shadow: 0 0 0 1px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35); }
 body.resizing #frame, body.resizing #term { pointer-events: none; }
 .placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; color: #444; background: #f5f6f8; padding: 20px; }
 .placeholder h2 { margin: 0 0 8px; color: #222; }

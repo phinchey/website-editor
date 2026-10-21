@@ -84,6 +84,9 @@ the top bar.
    * Toolbar: undo/redo, block type, bold/italic/underline, alignment, link,
      insert image (uploaded to `images/` next to the page), insert elements,
      duplicate (**Ctrl+D**), delete (**Del**).
+   * The **device** dropdown switches the preview width between desktop,
+     laptop, tablet and phone sizes (scaled down to fit when the pane is
+     narrower); "Fit pane" fills the pane.
    * **⚙** opens the properties panel: id, class, href/src/alt, common styles
      and the raw inline style. **↑ Parent** walks up the tree.
    * Drop an image file from your desktop onto the page to upload and insert it.

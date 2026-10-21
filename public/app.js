@@ -387,6 +387,33 @@
       refreshTree();
     } catch (e) { fail(e); }
   }
+  // ---------- device width (desktop / tablet / phone preview) ----------
+  const frameWrap = $('#frame-wrap');
+  function applyDevice() {
+    const w = +(prefs.deviceWidth || 0);
+    const info = $('#device-info');
+    if (!w) {
+      frameWrap.classList.remove('device');
+      frame.style.cssText = '';
+      info.textContent = '';
+      return;
+    }
+    frameWrap.classList.add('device');
+    const pw = frameWrap.clientWidth, ph = frameWrap.clientHeight;
+    const scale = Math.min(1, (pw - 16) / w);
+    const h = Math.round(ph / scale);
+    frame.style.width = w + 'px';
+    frame.style.height = h + 'px';
+    frame.style.transformOrigin = 'top left';
+    frame.style.transform = `translateX(${Math.round((pw - w * scale) / 2)}px) scale(${scale})`;
+    frame.style.left = '0';
+    info.textContent = w + 'px' + (scale < 1 ? ' @ ' + Math.round(scale * 100) + '%' : '');
+  }
+  $('#sel-device').onchange = (ev) => { prefs.deviceWidth = +ev.target.value; savePrefs(); applyDevice(); };
+  new ResizeObserver(() => applyDevice()).observe(frameWrap);
+  $('#sel-device').value = String(prefs.deviceWidth || 0);
+  applyDevice();
+
   $('#btn-preview').onclick = () => { if (state.file) window.open('/preview/' + state.file.path.split('/').map(encodeURIComponent).join('/'), '_blank'); };
   $('#btn-props').onclick = () => { const p = $('#props'); p.hidden = !p.hidden; $('#btn-props').classList.toggle('on', !p.hidden); };
   $('#btn-props-close').onclick = () => { $('#props').hidden = true; $('#btn-props').classList.remove('on'); };

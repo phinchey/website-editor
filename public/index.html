@@ -88,6 +88,18 @@
             <button id="btn-delete" title="Delete element (Del)">🗑</button>
             <span class="sep"></span>
             <label class="chk" title="Drag moves elements freely (absolute positioning) instead of reordering them in the layout"><input type="checkbox" id="chk-freemove"> Free move</label>
+            <span class="sep"></span>
+            <select id="sel-device" title="Preview width (desktop / tablet / phone)">
+              <option value="0">🖥 Fit pane</option>
+              <option value="1440">🖥 Desktop 1440</option>
+              <option value="1280">💻 Laptop 1280</option>
+              <option value="1024">📱 Tablet landscape 1024</option>
+              <option value="768">📱 Tablet 768</option>
+              <option value="430">📱 Phone large 430</option>
+              <option value="390">📱 Phone 390</option>
+              <option value="360">📱 Phone small 360</option>
+            </select>
+            <span id="device-info" class="muted small" title="Rendered width (scaled to fit when the pane is narrower)"></span>
             <span class="grow"></span>
             <button id="btn-props" class="toggle" title="Element properties">⚙</button>
           </div>
