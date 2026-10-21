@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Website Editor</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232563eb'/%3E%3Cpath d='M4 5h8M4 8h8M4 11h5' stroke='%23fff' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/vendor/codemirror/lib/codemirror.css">
+<link rel="stylesheet" href="/vendor/codemirror/theme/material-darker.css">
+<link rel="stylesheet" href="/vendor/codemirror/addon/fold/foldgutter.css">
+<link rel="stylesheet" href="/vendor/codemirror/addon/dialog/dialog.css">
+<link rel="stylesheet" href="/vendor/xterm/css/xterm.css">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div id="app" class="show-source show-terminal show-files">
+
+  <!-- ===== top bar ===== -->
+  <header id="topbar">
+    <div class="brand" title="Website Editor">◧</div>
+    <button id="btn-open" class="tb" title="Open a folder on this machine">📁 Open folder</button>
+    <button id="btn-clone" class="tb" title="Clone a GitHub repository">⤓ Clone repo</button>
+    <span id="workspace-name" class="muted" title=""></span>
+    <span class="sep"></span>
+    <span id="file-name" class="file-name">No file open</span>
+    <span id="dirty" class="dirty-dot" title="Unsaved changes">●</span>
+    <button id="btn-save" class="tb primary" title="Save (Ctrl+S)">💾 Save</button>
+    <span class="grow"></span>
+    <button id="btn-toggle-files" class="tb toggle" title="Toggle file tree">Files</button>
+    <button id="btn-toggle-source" class="tb toggle" title="Toggle HTML source pane">HTML</button>
+    <button id="btn-toggle-terminal" class="tb toggle" title="Toggle terminal">Terminal</button>
+    <button id="btn-preview" class="tb" title="Open the saved page in a new tab (scripts enabled)">↗ Preview</button>
+  </header>
+
+  <!-- ===== main area ===== -->
+  <div id="main">
+    <aside id="files">
+      <div class="pane-head"><span>Files</span><span class="grow"></span>
+        <button id="btn-new-file" class="icon" title="New file">＋</button>
+        <button id="btn-refresh-files" class="icon" title="Refresh">↻</button>
+      </div>
+      <div id="tree" class="tree"></div>
+    </aside>
+    <div id="gutter-files" class="gutter v"></div>
+
+    <div id="workarea">
+      <div id="top">
+        <!-- ---- visual editor ---- -->
+        <section id="visual">
+          <div class="toolbar" id="visual-toolbar">
+            <button data-cmd="undo" title="Undo (Ctrl+Z)">↶</button>
+            <button data-cmd="redo" title="Redo (Ctrl+Y)">↷</button>
+            <span class="sep"></span>
+            <select id="sel-block" title="Block type">
+              <option value="">Block…</option>
+              <option value="p">Paragraph</option>
+              <option value="h1">Heading 1</option>
+              <option value="h2">Heading 2</option>
+              <option value="h3">Heading 3</option>
+              <option value="h4">Heading 4</option>
+              <option value="div">Div</option>
+              <option value="section">Section</option>
+              <option value="blockquote">Quote</option>
+              <option value="pre">Preformatted</option>
+            </select>
+            <button data-cmd="bold" title="Bold"><b>B</b></button>
+            <button data-cmd="italic" title="Italic"><i>I</i></button>
+            <button data-cmd="underline" title="Underline"><u>U</u></button>
+            <button data-cmd="justifyLeft" title="Align left">⫷</button>
+            <button data-cmd="justifyCenter" title="Align centre">≡</button>
+            <button data-cmd="justifyRight" title="Align right">⫸</button>
+            <button id="btn-link" title="Link">🔗</button>
+            <span class="sep"></span>
+            <button id="btn-insert-image" title="Insert image (uploads into the site folder)">🖼 Image</button>
+            <select id="sel-insert" title="Insert element">
+              <option value="">Insert…</option>
+              <option value="h2">Heading</option>
+              <option value="p">Paragraph</option>
+              <option value="button">Button</option>
+              <option value="a">Link</option>
+              <option value="box">Box (div)</option>
+              <option value="section">Section</option>
+              <option value="ul">List</option>
+              <option value="hr">Divider</option>
+              <option value="table">Table</option>
+            </select>
+            <button id="btn-duplicate" title="Duplicate (Ctrl+D)">⧉</button>
+            <button id="btn-delete" title="Delete element (Del)">🗑</button>
+            <span class="sep"></span>
+            <label class="chk" title="Drag moves elements freely (absolute positioning) instead of reordering them in the layout"><input type="checkbox" id="chk-freemove"> Free move</label>
+            <span class="grow"></span>
+            <button id="btn-props" class="toggle" title="Element properties">⚙</button>
+          </div>
+          <div id="visual-body">
+            <div id="frame-wrap">
+              <iframe id="frame" title="Visual editor" sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups"></iframe>
+              <div id="frame-placeholder" class="placeholder">
+                <div>
+                  <h2>Website Editor</h2>
+                  <p>Open a folder or clone a repository, then pick an <code>.html</code> file from the file tree.</p>
+                  <p class="muted">Click an element to select it · click again or double-click to edit text · drag to move · Delete removes · Ctrl+S saves.</p>
+                </div>
+              </div>
+            </div>
+            <aside id="props" hidden>
+              <div class="pane-head"><span>Element</span><span class="grow"></span><button id="btn-props-close" class="icon">✕</button></div>
+              <div id="props-body" class="props-body">
+                <div class="muted small">Nothing selected</div>
+              </div>
+            </aside>
+          </div>
+          <div id="breadcrumb" class="breadcrumb"></div>
+        </section>
+
+        <div id="gutter-source" class="gutter v"></div>
+
+        <!-- ---- HTML source ---- -->
+        <section id="source">
+          <div class="pane-head"><span id="source-title">HTML</span><span class="grow"></span>
+            <button id="btn-format" class="icon" title="Re-indent source">⇥</button>
+            <button id="btn-source-close" class="icon" title="Hide">✕</button>
+          </div>
+          <div id="source-editor"></div>
+        </section>
+      </div>
+
+      <div id="gutter-terminal" class="gutter h"></div>
+
+      <!-- ---- terminal ---- -->
+      <section id="terminal">
+        <div class="pane-head"><span>Terminal</span>
+          <span class="grow"></span>
+          <button id="btn-claude" class="tb small" title="Type `claude` into the terminal to start Claude Code">✦ Claude Code</button>
+          <button id="btn-term-restart" class="icon" title="Restart shell">↻</button>
+          <button id="btn-terminal-close" class="icon" title="Hide">✕</button>
+        </div>
+        <div id="term"></div>
+      </section>
+    </div>
+  </div>
+
+  <div id="status"><span id="status-text"></span></div>
+</div>
+
+<!-- ===== dialogs ===== -->
+<dialog id="dlg-open">
+  <form method="dialog" class="dlg">
+    <h3>Open folder</h3>
+    <p class="muted small">Browse folders on the machine running the server.</p>
+    <div class="row"><input id="open-path" type="text" placeholder="/path/to/site" spellcheck="false"><button type="button" id="open-go" class="tb">Go</button></div>
+    <div id="open-list" class="dir-list"></div>
+    <div class="row end"><button value="cancel" class="tb">Cancel</button><button type="button" id="open-confirm" class="tb primary">Open this folder</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-clone">
+  <form method="dialog" class="dlg">
+    <h3>Clone repository</h3>
+    <label>Repository URL or <code>owner/name</code><input id="clone-url" type="text" placeholder="https://github.com/owner/repo.git" spellcheck="false"></label>
+    <label>Folder name (optional)<input id="clone-name" type="text" placeholder="repo" spellcheck="false"></label>
+    <label>Branch (optional)<input id="clone-branch" type="text" placeholder="main" spellcheck="false"></label>
+    <p class="muted small">Clones into <code id="clone-dest"></code>. Private repos: clone from the terminal with your own credentials, then use Open folder.</p>
+    <pre id="clone-output" class="output" hidden></pre>
+    <div class="row end"><button value="cancel" class="tb">Cancel</button><button type="button" id="clone-confirm" class="tb primary">Clone</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-prompt">
+  <form method="dialog" class="dlg">
+    <h3 id="prompt-title">Input</h3>
+    <input id="prompt-input" type="text" spellcheck="false">
+    <div class="row end"><button value="cancel" class="tb">Cancel</button><button value="ok" class="tb primary">OK</button></div>
+  </form>
+</dialog>
+
+<input type="file" id="file-input" accept="image/*" hidden>
+
+<script src="/vendor/codemirror/lib/codemirror.js"></script>
+<script src="/vendor/codemirror/mode/xml/xml.js"></script>
+<script src="/vendor/codemirror/mode/javascript/javascript.js"></script>
+<script src="/vendor/codemirror/mode/css/css.js"></script>
+<script src="/vendor/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+<script src="/vendor/codemirror/mode/markdown/markdown.js"></script>
+<script src="/vendor/codemirror/addon/edit/matchtags.js"></script>
+<script src="/vendor/codemirror/addon/edit/closetag.js"></script>
+<script src="/vendor/codemirror/addon/edit/matchbrackets.js"></script>
+<script src="/vendor/codemirror/addon/edit/closebrackets.js"></script>
+<script src="/vendor/codemirror/addon/fold/xml-fold.js"></script>
+<script src="/vendor/codemirror/addon/fold/foldcode.js"></script>
+<script src="/vendor/codemirror/addon/fold/foldgutter.js"></script>
+<script src="/vendor/codemirror/addon/selection/active-line.js"></script>
+<script src="/vendor/codemirror/addon/dialog/dialog.js"></script>
+<script src="/vendor/codemirror/addon/search/searchcursor.js"></script>
+<script src="/vendor/codemirror/addon/search/search.js"></script>
+<script src="/vendor/xterm/lib/xterm.js"></script>
+<script src="/vendor/xterm-addon-fit/lib/addon-fit.js"></script>
+<script src="/vendor/xterm-addon-web-links/lib/addon-web-links.js"></script>
+<script src="/shared/injector.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
