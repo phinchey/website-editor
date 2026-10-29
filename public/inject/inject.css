@@ -35,3 +35,9 @@
 .wsed-dropline.vertical { width: 3px; }
 .wsed-dropinside { outline: 2px dashed #16a34a !important; outline-offset: -2px; }
 html.wsed-freemove * { cursor: move; }
+
+/* rendered {% include %} / macro output: read-only */
+[data-wsed-ro] { outline: 1px dashed rgba(124, 92, 255, .55); outline-offset: 2px; cursor: not-allowed; }
+/* from another template: click opens it */
+[data-wsed-ro]:not([data-wsed-ro=""]) { cursor: pointer; }
+[data-wsed-ro]:not([data-wsed-ro=""]):hover { outline: 2px solid rgba(124, 92, 255, .9); }

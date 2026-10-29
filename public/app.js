@@ -291,11 +291,52 @@
   function fileDir() { return state.file ? state.file.path.split('/').slice(0, -1).join('/') : ''; }
   function previewBase() { const d = fileDir(); return '/preview/' + (d ? d.split('/').map(encodeURIComponent).join('/') + '/' : ''); }
 
-  function loadFrameFromSource() {
+  let frameLoadSeq = 0;
+  async function loadFrameFromSource() {
     if (!state.file || !state.file.isHtml) return;
+    const seq = ++frameLoadSeq;
+    let src = cm.getValue();
+    const fragment = !/<(html|body)[\s>]/i.test(src);
+    if (WsedInjector.isTemplate(src)) {
+      const files = await loadTemplates(WsedInjector.templateRefs(src));
+      if (seq !== frameLoadSeq) return; // a newer load started while fetching
+      const t = WsedInjector.protectTemplate(src, { staticBase: location.origin + staticBase(), expand: WsedInjector.templateExpander(src, files) });
+      templateMaps[t.gen] = t.map;
+      delete templateMaps[t.gen - 5];
+      src = t.html;
+    }
     state.frameReady = false;
-    const html = WsedInjector.prepareForEditing(cm.getValue(), { baseHref: location.origin + previewBase(), cssHref: '/__wsed/inject.css', jsHref: '/__wsed/inject.js' });
+    const html = WsedInjector.prepareForEditing(src, { baseHref: location.origin + previewBase(), cssHref: '/__wsed/inject.css', jsHref: '/__wsed/inject.js', fragment });
     frame.srcdoc = html;
+  }
+  // Source of templates referenced by {% include %} / {% import %}, by template name.
+  // Names are relative to the Flask templates/ folder (or the page's folder).
+  async function loadTemplates(names) {
+    const files = {};
+    const dir = templatesDir();
+    await Promise.all(names.map(async (name) => {
+      try {
+        const f = await api('GET', '/api/file?path=' + encodeURIComponent(dir + name));
+        if (f.text) files[name] = f.content;
+      } catch (e) { /* missing template: leave the tag as is */ }
+    }));
+    return files;
+  }
+  function templatesDir() {
+    const parts = state.file.path.split('/');
+    const t = parts.lastIndexOf('templates', parts.length - 2);
+    const dir = t >= 0 ? parts.slice(0, t + 1) : parts.slice(0, -1);
+    return dir.map((p) => p + '/').join('');
+  }
+  // Jinja placeholders -> original syntax, for HTML coming back from the frame
+  const templateMaps = {};
+  function fromFrame(html) { return html == null ? html : WsedInjector.restoreTemplate(html, templateMaps); }
+  // Flask layout: <app>/templates/... is served with <app>/static/ beside it
+  function staticBase() {
+    const parts = state.file.path.split('/');
+    const t = parts.lastIndexOf('templates', parts.length - 2);
+    const prefix = t >= 0 ? parts.slice(0, t) : [];
+    return '/preview/' + prefix.map((p) => encodeURIComponent(p) + '/').join('') + 'static/';
   }
   function postFrame(msg) { if (frame.contentWindow) frame.contentWindow.postMessage(Object.assign({ wsed: true }, msg), '*'); }
   const pending = new Map();
@@ -331,15 +372,16 @@
         break;
       case 'change':
         // Visual edit → regenerate the source pane (the file is only written on Save)
-        if (m.html !== cm.getValue()) setSourceFromFrame(m.html);
+        { const html = fromFrame(m.html); if (html !== cm.getValue()) setSourceFromFrame(html); }
         break;
       case 'html':
-        if (pending.has(m.reqId)) { pending.get(m.reqId)(m.html); pending.delete(m.reqId); }
+        if (pending.has(m.reqId)) { pending.get(m.reqId)(fromFrame(m.html)); pending.delete(m.reqId); }
         break;
       case 'select': setSelection(m.info); break;
       case 'scroll': state.scroll = { x: m.x, y: m.y }; break;
       case 'save': save(); break;
       case 'dropFile': uploadAndInsert(m.name, m.dataUrl.split(',')[1], m.mime); break;
+      case 'openTemplate': if (state.file) openFile(templatesDir() + m.name); break;
     }
   });
 
