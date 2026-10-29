@@ -1,0 +1,37 @@
+/* Editor overlay styles injected into the page being edited. Everything is
+   namespaced with .wsed- and marked data-wsed so it is stripped on save. */
+[data-wsed-ce="1"] { outline: none !important; cursor: text; }
+.wsed-hover { outline: 1px dashed rgba(37, 99, 235, 0.7) !important; outline-offset: -1px; }
+.wsed-selected { outline: 2px solid #2563eb !important; outline-offset: -2px; touch-action: none; }
+.wsed-dragging { opacity: 0.4 !important; }
+.wsed-overlay {
+  position: absolute; pointer-events: none; z-index: 2147483000;
+  box-sizing: border-box; border: 0;
+}
+.wsed-overlay .wsed-label {
+  position: absolute; left: -2px; top: -22px; height: 20px; line-height: 20px;
+  padding: 0 7px; font: 11px/20px system-ui, sans-serif; color: #fff; background: #2563eb;
+  border-radius: 4px 4px 0 0; white-space: nowrap; pointer-events: auto; cursor: move;
+  user-select: none; touch-action: none;
+}
+.wsed-overlay .wsed-handle {
+  position: absolute; width: 10px; height: 10px; background: #fff; border: 2px solid #2563eb;
+  border-radius: 2px; pointer-events: auto; box-sizing: border-box; touch-action: none;
+}
+.wsed-overlay .wsed-handle.n  { top: -5px; left: 50%; margin-left: -5px; cursor: ns-resize; }
+.wsed-overlay .wsed-handle.s  { bottom: -5px; left: 50%; margin-left: -5px; cursor: ns-resize; }
+.wsed-overlay .wsed-handle.e  { right: -5px; top: 50%; margin-top: -5px; cursor: ew-resize; }
+.wsed-overlay .wsed-handle.w  { left: -5px; top: 50%; margin-top: -5px; cursor: ew-resize; }
+.wsed-overlay .wsed-handle.ne { right: -5px; top: -5px; cursor: nesw-resize; }
+.wsed-overlay .wsed-handle.nw { left: -5px; top: -5px; cursor: nwse-resize; }
+.wsed-overlay .wsed-handle.se { right: -5px; bottom: -5px; cursor: nwse-resize; }
+.wsed-overlay .wsed-handle.sw { left: -5px; bottom: -5px; cursor: nesw-resize; }
+.wsed-overlay.wsed-editing .wsed-handle { display: none; }
+.wsed-dropline {
+  position: absolute; z-index: 2147483001; pointer-events: none;
+  background: #16a34a; box-shadow: 0 0 0 1px #fff;
+}
+.wsed-dropline.horizontal { height: 3px; }
+.wsed-dropline.vertical { width: 3px; }
+.wsed-dropinside { outline: 2px dashed #16a34a !important; outline-offset: -2px; }
+html.wsed-freemove * { cursor: move; }
